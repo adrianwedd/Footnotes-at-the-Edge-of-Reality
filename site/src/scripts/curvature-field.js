@@ -23,9 +23,9 @@ function clamp01(x) {
 // Adaptive grid size by viewport
 function gridForViewport(w, h) {
   const minDim = Math.min(w, h);
-  if (minDim < 520) return { nx: 120, ny: 68, seeds: 8 };
-  if (minDim < 900) return { nx: 180, ny: 101, seeds: 12 };
-  return { nx: 240, ny: 135, seeds: 15 };
+  if (minDim < 520) return { nx: 120, ny: 68, seeds: 6 };
+  if (minDim < 900) return { nx: 180, ny: 101, seeds: 8 };
+  return { nx: 240, ny: 135, seeds: 10 };
 }
 
 // Deterministic mass motion (slow orbits)
@@ -33,9 +33,10 @@ function massesAtTime({ seed, tMs, w, h, count = 3 }) {
   const masses = [];
   for (let i = 0; i < count; i++) {
     const rng = mulberry32(seed + i * 1013);
-    const cx = 0.5 + (rng() - 0.5) * 0.10;
-    const cy = 0.5 + (rng() - 0.5) * 0.10;
-    const radius = 0.20 + rng() * 0.12;
+    // Spread masses across viewport, not clustered at center
+    const cx = 0.2 + rng() * 0.6; // 20-80% of viewport width
+    const cy = 0.2 + rng() * 0.6; // 20-80% of viewport height
+    const radius = 0.15 + rng() * 0.10;
     const ecc = 0.85 + rng() * 0.20;
     const period = (10 + rng() * 10) * 60_000;
     const phase = rng() * Math.PI * 2;
