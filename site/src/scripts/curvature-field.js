@@ -140,31 +140,31 @@ function sampleGradient(grad, x, y, nx, ny, w, h) {
 }
 
 // Integrate streamline using RK4
-function integrateStreamline(seed, grad, nx, ny, w, h, maxSteps = 200, dt = 2.5) {
+function integrateStreamline(seed, grad, nx, ny, w, h, maxSteps = 200, dt = 2.5, scale = 1) {
   const points = [];
   let pos = { ...seed };
 
   for (let step = 0; step < maxSteps; step++) {
     points.push({ ...pos });
 
-    // RK4 integration
+    // RK4 integration with gradient scaling
     const k1 = sampleGradient(grad, pos.x, pos.y, nx, ny, w, h);
     if (!k1) break; // Only break if completely outside grid
 
-    const pos2 = { x: pos.x + k1.x * dt * 0.5, y: pos.y + k1.y * dt * 0.5 };
+    const pos2 = { x: pos.x + k1.x * dt * scale * 0.5, y: pos.y + k1.y * dt * scale * 0.5 };
     const k2 = sampleGradient(grad, pos2.x, pos2.y, nx, ny, w, h);
     if (!k2) break;
 
-    const pos3 = { x: pos.x + k2.x * dt * 0.5, y: pos.y + k2.y * dt * 0.5 };
+    const pos3 = { x: pos.x + k2.x * dt * scale * 0.5, y: pos.y + k2.y * dt * scale * 0.5 };
     const k3 = sampleGradient(grad, pos3.x, pos3.y, nx, ny, w, h);
     if (!k3) break;
 
-    const pos4 = { x: pos.x + k3.x * dt, y: pos.y + k3.y * dt };
+    const pos4 = { x: pos.x + k3.x * dt * scale, y: pos.y + k3.y * dt * scale };
     const k4 = sampleGradient(grad, pos4.x, pos4.y, nx, ny, w, h);
     if (!k4) break;
 
-    pos.x += (dt / 6) * (k1.x + 2 * k2.x + 2 * k3.x + k4.x);
-    pos.y += (dt / 6) * (k1.y + 2 * k2.y + 2 * k3.y + k4.y);
+    pos.x += (dt * scale / 6) * (k1.x + 2 * k2.x + 2 * k3.x + k4.x);
+    pos.y += (dt * scale / 6) * (k1.y + 2 * k2.y + 2 * k3.y + k4.y);
 
     // Lines continue even in weak fields - no magnitude threshold
   }
@@ -272,10 +272,10 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
     const phi = computePhiGrid({ nx, ny, w, h, masses: m, epsilonPx: epsilon });
     const grad = computeGradient(phi, nx, ny, w, h);
 
-    // Generate streamlines
+    // Generate streamlines (scale gradient by 20000x to produce visible motion)
     const seedPoints = generateSeeds(seed, seedCount, w, h, m);
     const streamlines = seedPoints.map(s =>
-      integrateStreamline(s, grad, nx, ny, w, h, 400, 1000)
+      integrateStreamline(s, grad, nx, ny, w, h, 400, 1000, 20000)
     );
 
     // Debug
