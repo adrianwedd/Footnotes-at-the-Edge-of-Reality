@@ -275,7 +275,7 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
     // Generate streamlines
     const seedPoints = generateSeeds(seed, seedCount, w, h, m);
     const streamlines = seedPoints.map(s =>
-      integrateStreamline(s, grad, nx, ny, w, h, 200, 100)
+      integrateStreamline(s, grad, nx, ny, w, h, 400, 1000)
     );
 
     // Debug
