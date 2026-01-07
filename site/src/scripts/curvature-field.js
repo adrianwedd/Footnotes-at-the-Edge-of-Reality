@@ -25,9 +25,9 @@ function clamp01(x) {
 // Adaptive grid size and tick rate by viewport
 function gridForViewport(w, h) {
   const minDim = Math.min(w, h);
-  if (minDim < 520) return { nx: 120, ny: 68, tickMs: 1000, seeds: 20 };
-  if (minDim < 900) return { nx: 180, ny: 101, tickMs: 800, seeds: 35 };
-  return { nx: 240, ny: 135, tickMs: 500, seeds: 50 };
+  if (minDim < 520) return { nx: 120, ny: 68, tickMs: 2000, seeds: 8 };
+  if (minDim < 900) return { nx: 180, ny: 101, tickMs: 2000, seeds: 12 };
+  return { nx: 240, ny: 135, tickMs: 2000, seeds: 15 };
 }
 
 // Deterministic mass motion (slow orbits)
@@ -256,10 +256,10 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
     const phi = computePhiGrid({ nx, ny, w, h, masses: m, epsilonPx: epsilon });
     const grad = computeGradient(phi, nx, ny, w, h);
 
-    // Generate streamlines (scale gradient by 50x to produce visible motion)
+    // Generate streamlines extending well beyond viewport
     const seedPoints = generateSeeds(seed, seedCount, w, h, m);
     const streamlines = seedPoints.map(s =>
-      integrateStreamline(s, grad, nx, ny, w, h, 400, 1000, 50)
+      integrateStreamline(s, grad, nx, ny, w, h, 1200, 1000, 50)
     );
 
     // Render
