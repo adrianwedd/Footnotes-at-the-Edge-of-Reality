@@ -23,9 +23,9 @@ body {
 }
 
 main .content-surface {
-  background: rgba(7, 10, 15, 0.85);
-  border: 1px solid var(--rule);
-  border-radius: 16px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   padding: 1.25rem;
-  backdrop-filter: blur(1px);
+  backdrop-filter: none;
 }
