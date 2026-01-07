@@ -209,11 +209,11 @@ function generateSeeds(seed, count, w, h, masses) {
 function renderStreamlines(ctx, streamlines, w, h) {
   ctx.clearRect(0, 0, w, h);
 
-  // Draw streamlines at barely-visible opacity
+  // Draw streamlines at subtle but noticeable opacity
   for (const line of streamlines) {
     if (line.length < 3) continue;
 
-    ctx.strokeStyle = 'rgba(138, 199, 217, 0.04)'; // Link color at 4% opacity
+    ctx.strokeStyle = 'rgba(138, 199, 217, 0.12)'; // Link color at 12% opacity
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(line[0].x, line[0].y);
