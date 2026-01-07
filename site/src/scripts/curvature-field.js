@@ -184,18 +184,18 @@ function generateSeeds(seed, count, w, h, masses) {
     switch (edge) {
       case 0: // top edge
         x = t * w;
-        y = -50; // Start slightly offscreen
+        y = 10; // Just inside viewport
         break;
       case 1: // right edge
-        x = w + 50;
+        x = w - 10;
         y = t * h;
         break;
       case 2: // bottom edge
         x = t * w;
-        y = h + 50;
+        y = h - 10;
         break;
       case 3: // left edge
-        x = -50;
+        x = 10;
         y = t * h;
         break;
     }
