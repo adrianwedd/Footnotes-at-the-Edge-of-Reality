@@ -210,18 +210,23 @@ function generateSeeds(seed, count, w, h, masses) {
 function renderStreamlines(ctx, streamlines, w, h) {
   ctx.clearRect(0, 0, w, h);
 
+  // Debug: draw a test line to verify canvas works
+  ctx.strokeStyle = 'rgba(200, 220, 255, 0.3)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(w * 0.1, h * 0.1);
+  ctx.lineTo(w * 0.9, h * 0.9);
+  ctx.stroke();
+
   for (const line of streamlines) {
     if (line.length < 3) continue;
-
-    ctx.beginPath();
-    ctx.moveTo(line[0].x, line[0].y);
 
     const fadeIn = Math.min(8, Math.floor(line.length * 0.15));
     const fadeOut = Math.min(8, Math.floor(line.length * 0.15));
 
-    for (let i = 1; i < line.length; i++) {
+    for (let i = 0; i < line.length - 1; i++) {
       // Compute fade alpha
-      let alpha = 0.10;  // Increased from 0.025 for visibility
+      let alpha = 0.15;  // Further increased for debugging
       if (i < fadeIn) {
         alpha *= i / fadeIn;
       } else if (i > line.length - fadeOut) {
@@ -229,14 +234,11 @@ function renderStreamlines(ctx, streamlines, w, h) {
       }
 
       ctx.strokeStyle = `rgba(200, 220, 255, ${alpha})`;
-      ctx.lineWidth = 1.0;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      ctx.lineTo(line[i].x, line[i].y);
-      ctx.stroke();
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(line[i].x, line[i].y);
+      ctx.lineTo(line[i + 1].x, line[i + 1].y);
+      ctx.stroke();
     }
   }
 }
