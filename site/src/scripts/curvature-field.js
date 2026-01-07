@@ -209,6 +209,10 @@ function generateSeeds(seed, count, w, h, masses) {
 function renderStreamlines(ctx, streamlines, w, h) {
   ctx.clearRect(0, 0, w, h);
 
+  // Debug: bright test square
+  ctx.fillStyle = 'rgba(255, 100, 100, 0.5)';
+  ctx.fillRect(20, 20, 50, 50);
+
   for (const line of streamlines) {
     if (line.length < 3) continue;
 
@@ -271,6 +275,9 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
     const streamlines = seedPoints.map(s =>
       integrateStreamline(s, grad, nx, ny, w, h, 200, 2.5)
     );
+
+    // Debug
+    console.log(`Generated ${streamlines.length} streamlines, avg length: ${streamlines.reduce((sum, s) => sum + s.length, 0) / streamlines.length}`);
 
     // Render
     renderStreamlines(ctx, streamlines, w, h);
