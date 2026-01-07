@@ -166,8 +166,7 @@ function integrateStreamline(seed, grad, nx, ny, w, h, maxSteps = 200, dt = 2.5)
     pos.x += (dt / 6) * (k1.x + 2 * k2.x + 2 * k3.x + k4.x);
     pos.y += (dt / 6) * (k1.y + 2 * k2.y + 2 * k3.y + k4.y);
 
-    // Stop if out of bounds
-    if (pos.x < 0 || pos.x > w || pos.y < 0 || pos.y > h) break;
+    // Lines continue beyond the frame - no boundary check
   }
 
   return points;
