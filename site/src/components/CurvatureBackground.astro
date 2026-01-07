@@ -9,7 +9,9 @@
 
 <script>
   import { initCurvatureField } from "../scripts/curvature-field.js";
-  initCurvatureField({ canvasId: "curvature-bg", seed: 42 });
+  // Random seed per session - each visit reveals different curvature
+  const seed = Math.floor(Math.random() * 1000000);
+  initCurvatureField({ canvasId: "curvature-bg", seed });
 </script>
 
 <style>
