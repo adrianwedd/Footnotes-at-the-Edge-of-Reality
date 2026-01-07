@@ -149,7 +149,7 @@ function integrateStreamline(seed, grad, nx, ny, w, h, maxSteps = 200, dt = 2.5)
 
     // RK4 integration
     const k1 = sampleGradient(grad, pos.x, pos.y, nx, ny, w, h);
-    if (!k1 || (k1.x * k1.x + k1.y * k1.y) < 1e-8) break;
+    if (!k1) break; // Only break if completely outside grid
 
     const pos2 = { x: pos.x + k1.x * dt * 0.5, y: pos.y + k1.y * dt * 0.5 };
     const k2 = sampleGradient(grad, pos2.x, pos2.y, nx, ny, w, h);
@@ -166,7 +166,7 @@ function integrateStreamline(seed, grad, nx, ny, w, h, maxSteps = 200, dt = 2.5)
     pos.x += (dt / 6) * (k1.x + 2 * k2.x + 2 * k3.x + k4.x);
     pos.y += (dt / 6) * (k1.y + 2 * k2.y + 2 * k3.y + k4.y);
 
-    // Lines continue beyond the frame - no boundary check
+    // Lines continue even in weak fields - no magnitude threshold
   }
 
   return points;
