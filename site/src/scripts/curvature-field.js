@@ -28,9 +28,9 @@ function mulberry32(seed) {
 // Compute adaptive grid size by viewport
 function gridForViewport(w, h) {
   const minDim = Math.min(w, h);
-  if (minDim < 520) return { nx: 120, ny: 68, tickMs: 1000 };   // mobile
-  if (minDim < 900) return { nx: 160, ny: 90, tickMs: 800 };    // small tablet
-  return { nx: 240, ny: 135, tickMs: 500 };                     // desktop
+  if (minDim < 520) return { nx: 80, ny: 45, tickMs: 1500 };    // mobile
+  if (minDim < 900) return { nx: 100, ny: 56, tickMs: 1200 };   // small tablet
+  return { nx: 120, ny: 68, tickMs: 800 };                      // desktop
 }
 
 function clamp01(x) {
@@ -134,17 +134,17 @@ function normalizeK(K) {
 // For skeleton purposes, we render a very soft shading grid instead.
 // Replace with marching squares once implemented.
 function renderFallbackGrid(ctx, K01, nx, ny, w, h) {
-  // extremely subtle shading; avoid banding by keeping resolution moderate
+  // Subtle shading: visible if you look, but never loud
   const dx = w / (nx - 1);
   const dy = h / (ny - 1);
   ctx.clearRect(0, 0, w, h);
 
-  // base fill is handled via CSS; keep drawing minimal
+  // Render curvature field with gentle visibility
   for (let j = 0; j < ny; j++) {
     for (let i = 0; i < nx; i++) {
       const v = K01[j * nx + i];
-      // Map v to tiny alpha; keep below ~0.05
-      const a = 0.015 + v * 0.020;
+      // Subtle but visible: 4-12% opacity range
+      const a = 0.04 + v * 0.08;
       ctx.fillStyle = `rgba(220, 235, 255, ${a})`;
       ctx.fillRect(i * dx, j * dy, dx + 1, dy + 1);
     }

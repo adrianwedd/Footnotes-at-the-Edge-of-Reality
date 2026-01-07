@@ -3,15 +3,13 @@
 // Minimal, text-first background canvas. No UI. No interaction.
 // Respects prefers-reduced-motion via the script.
 // NOTE: This component assumes the script is safe to run once per page.
-
-const seed = 42; // TODO: set per-build or per-session if desired
 ---
 
 <canvas id="curvature-bg" aria-hidden="true"></canvas>
 
-<script type="module" define:vars={{ seed }}>
+<script>
   import { initCurvatureField } from "../scripts/curvature-field.js";
-  initCurvatureField({ canvasId: "curvature-bg", seed });
+  initCurvatureField({ canvasId: "curvature-bg", seed: 42 });
 </script>
 
 <style>
