@@ -1,60 +1,45 @@
 // curvature-field.js
-// Tick-based curvature field renderer (minute-scale drift).
-// No dependencies. Designed to be subtle and low-CPU.
-//
-// Implementation notes:
-// - Deterministic mass motion from (seed, t)
-// - Tick loop (setInterval) not RAF
-// - Pause on tab hidden
-// - prefers-reduced-motion => static frame only
-//
-// This file is a *skeleton* to accelerate implementation.
+// Renders gravitational field as flowing streamlines (field gradient flow)
+// Tick-based, minute-scale drift, respects reduced-motion
 
 function prefersReducedMotion() {
   return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-// Simple seeded RNG (Mulberry32)
+// Seeded RNG (Mulberry32)
 function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    a |= 0;
+    a = (a + 0x6D2B79F5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
 
-// Compute adaptive grid size by viewport
-function gridForViewport(w, h) {
-  const minDim = Math.min(w, h);
-  if (minDim < 520) return { nx: 80, ny: 45, tickMs: 1500 };    // mobile
-  if (minDim < 900) return { nx: 100, ny: 56, tickMs: 1200 };   // small tablet
-  return { nx: 120, ny: 68, tickMs: 800 };                      // desktop
-}
-
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
 }
 
-// TODO: percentile clamp utility for normalization (2nd–98th)
-function percentileClamp(values, loP = 0.02, hiP = 0.98) {
-  const sorted = [...values].sort((a, b) => a - b);
-  const lo = sorted[Math.floor(loP * (sorted.length - 1))];
-  const hi = sorted[Math.floor(hiP * (sorted.length - 1))];
-  return { lo, hi };
+// Adaptive grid size and tick rate by viewport
+function gridForViewport(w, h) {
+  const minDim = Math.min(w, h);
+  if (minDim < 520) return { nx: 120, ny: 68, tickMs: 1000, seeds: 20 };
+  if (minDim < 900) return { nx: 180, ny: 101, tickMs: 800, seeds: 35 };
+  return { nx: 240, ny: 135, tickMs: 500, seeds: 50 };
 }
 
-// Deterministic mass motion: slow, slightly eccentric orbit
+// Deterministic mass motion (slow orbits)
 function massesAtTime({ seed, tMs, w, h, count = 3 }) {
   const masses = [];
   for (let i = 0; i < count; i++) {
     const rng = mulberry32(seed + i * 1013);
-    const cx = 0.5 + (rng() - 0.5) * 0.10; // keep near center-ish
+    const cx = 0.5 + (rng() - 0.5) * 0.10;
     const cy = 0.5 + (rng() - 0.5) * 0.10;
-    const radius = 0.20 + rng() * 0.12; // fraction of min dim
+    const radius = 0.20 + rng() * 0.12;
     const ecc = 0.85 + rng() * 0.20;
-    const period = (10 + rng() * 10) * 60_000; // 10–20 minutes
+    const period = (10 + rng() * 10) * 60_000;
     const phase = rng() * Math.PI * 2;
     const angle = phase + (tMs / period) * Math.PI * 2;
 
@@ -68,9 +53,8 @@ function massesAtTime({ seed, tMs, w, h, count = 3 }) {
   return masses;
 }
 
-// TODO: implement φ field computation on grid
+// Compute gravitational potential φ on grid
 function computePhiGrid({ nx, ny, w, h, masses, epsilonPx }) {
-  // returns Float32Array length nx*ny
   const phi = new Float32Array(nx * ny);
   const dx = w / (nx - 1);
   const dy = h / (ny - 1);
@@ -93,65 +77,171 @@ function computePhiGrid({ nx, ny, w, h, masses, epsilonPx }) {
   return phi;
 }
 
-// TODO: normalize phi to [-1, 1] and optional tanh easing
-function normalizePhi(phi) {
-  let mn = Infinity, mx = -Infinity;
-  for (let k = 0; k < phi.length; k++) { mn = Math.min(mn, phi[k]); mx = Math.max(mx, phi[k]); }
-  const out = new Float32Array(phi.length);
-  const span = mx - mn || 1;
-  for (let k = 0; k < phi.length; k++) {
-    const t = ((phi[k] - mn) / span) * 2 - 1;
-    // mild easing (optional):
-    out[k] = Math.tanh(0.9 * t);
-  }
-  return out;
-}
+// Compute gradient field ∇φ (direction of flow)
+function computeGradient(phi, nx, ny, w, h) {
+  const grad = new Array(nx * ny);
+  const dx = w / (nx - 1);
+  const dy = h / (ny - 1);
 
-// TODO: compute K = -Δφ (discrete Laplacian)
-function computeCurvature(phiNorm, nx, ny) {
-  const K = new Float32Array(phiNorm.length);
   for (let j = 1; j < ny - 1; j++) {
     for (let i = 1; i < nx - 1; i++) {
       const idx = j * nx + i;
-      const lap = phiNorm[idx - 1] + phiNorm[idx + 1] + phiNorm[idx - nx] + phiNorm[idx + nx] - 4 * phiNorm[idx];
-      K[idx] = -lap;
+      const gx = (phi[idx + 1] - phi[idx - 1]) / (2 * dx);
+      const gy = (phi[idx + nx] - phi[idx - nx]) / (2 * dy);
+      grad[idx] = { x: gx, y: gy };
     }
   }
-  return K;
+
+  // Fill edges with zero gradient
+  for (let i = 0; i < nx; i++) {
+    grad[i] = { x: 0, y: 0 };
+    grad[(ny - 1) * nx + i] = { x: 0, y: 0 };
+  }
+  for (let j = 0; j < ny; j++) {
+    grad[j * nx] = { x: 0, y: 0 };
+    grad[j * nx + nx - 1] = { x: 0, y: 0 };
+  }
+
+  return grad;
 }
 
-// TODO: normalize K to [0,1] with percentile clamp
-function normalizeK(K) {
-  const vals = Array.from(K);
-  const { lo, hi } = percentileClamp(vals, 0.02, 0.98);
-  const out = new Float32Array(K.length);
-  const span = (hi - lo) || 1;
-  for (let i = 0; i < K.length; i++) out[i] = clamp01((K[i] - lo) / span);
-  return out;
-}
-
-// TODO: marching squares for filled contours + isolines
-// For skeleton purposes, we render a very soft shading grid instead.
-// Replace with marching squares once implemented.
-function renderFallbackGrid(ctx, K01, nx, ny, w, h) {
-  // Subtle shading: visible if you look, but never loud
+// Bilinear sample gradient at continuous (x, y) position
+function sampleGradient(grad, x, y, nx, ny, w, h) {
   const dx = w / (nx - 1);
   const dy = h / (ny - 1);
+  const fi = x / dx;
+  const fj = y / dy;
+  const i = Math.floor(fi);
+  const j = Math.floor(fj);
+
+  if (i < 0 || j < 0 || i >= nx - 1 || j >= ny - 1) return null;
+
+  const fx = fi - i;
+  const fy = fj - j;
+
+  const g00 = grad[j * nx + i] || { x: 0, y: 0 };
+  const g10 = grad[j * nx + i + 1] || { x: 0, y: 0 };
+  const g01 = grad[(j + 1) * nx + i] || { x: 0, y: 0 };
+  const g11 = grad[(j + 1) * nx + i + 1] || { x: 0, y: 0 };
+
+  const gx =
+    g00.x * (1 - fx) * (1 - fy) +
+    g10.x * fx * (1 - fy) +
+    g01.x * (1 - fx) * fy +
+    g11.x * fx * fy;
+
+  const gy =
+    g00.y * (1 - fx) * (1 - fy) +
+    g10.y * fx * (1 - fy) +
+    g01.y * (1 - fx) * fy +
+    g11.y * fx * fy;
+
+  return { x: gx, y: gy };
+}
+
+// Integrate streamline using RK4
+function integrateStreamline(seed, grad, nx, ny, w, h, maxSteps = 200, dt = 2.5) {
+  const points = [];
+  let pos = { ...seed };
+
+  for (let step = 0; step < maxSteps; step++) {
+    points.push({ ...pos });
+
+    // RK4 integration
+    const k1 = sampleGradient(grad, pos.x, pos.y, nx, ny, w, h);
+    if (!k1 || (k1.x * k1.x + k1.y * k1.y) < 1e-8) break;
+
+    const pos2 = { x: pos.x + k1.x * dt * 0.5, y: pos.y + k1.y * dt * 0.5 };
+    const k2 = sampleGradient(grad, pos2.x, pos2.y, nx, ny, w, h);
+    if (!k2) break;
+
+    const pos3 = { x: pos.x + k2.x * dt * 0.5, y: pos.y + k2.y * dt * 0.5 };
+    const k3 = sampleGradient(grad, pos3.x, pos3.y, nx, ny, w, h);
+    if (!k3) break;
+
+    const pos4 = { x: pos.x + k3.x * dt, y: pos.y + k3.y * dt };
+    const k4 = sampleGradient(grad, pos4.x, pos4.y, nx, ny, w, h);
+    if (!k4) break;
+
+    pos.x += (dt / 6) * (k1.x + 2 * k2.x + 2 * k3.x + k4.x);
+    pos.y += (dt / 6) * (k1.y + 2 * k2.y + 2 * k3.y + k4.y);
+
+    // Stop if out of bounds
+    if (pos.x < 0 || pos.x > w || pos.y < 0 || pos.y > h) break;
+  }
+
+  return points;
+}
+
+// Generate seed points (deterministic sparse distribution)
+function generateSeeds(seed, count, w, h, masses) {
+  const rng = mulberry32(seed + 9999);
+  const seeds = [];
+
+  // Mix of random scatter and rings around masses
+  const randomCount = Math.floor(count * 0.6);
+  const ringCount = count - randomCount;
+
+  // Random scatter
+  for (let i = 0; i < randomCount; i++) {
+    seeds.push({
+      x: rng() * w,
+      y: rng() * h
+    });
+  }
+
+  // Rings around masses
+  const ringsPerMass = Math.ceil(ringCount / masses.length);
+  for (const mass of masses) {
+    for (let i = 0; i < ringsPerMass; i++) {
+      const angle = rng() * Math.PI * 2;
+      const radius = (80 + rng() * 120); // px from mass
+      seeds.push({
+        x: mass.x + radius * Math.cos(angle),
+        y: mass.y + radius * Math.sin(angle)
+      });
+    }
+  }
+
+  return seeds.slice(0, count);
+}
+
+// Render streamlines with fade-in/fade-out
+function renderStreamlines(ctx, streamlines, w, h) {
   ctx.clearRect(0, 0, w, h);
 
-  // Render curvature field with gentle visibility
-  for (let j = 0; j < ny; j++) {
-    for (let i = 0; i < nx; i++) {
-      const v = K01[j * nx + i];
-      // Subtle but visible: 4-12% opacity range
-      const a = 0.04 + v * 0.08;
-      ctx.fillStyle = `rgba(220, 235, 255, ${a})`;
-      ctx.fillRect(i * dx, j * dy, dx + 1, dy + 1);
+  for (const line of streamlines) {
+    if (line.length < 3) continue;
+
+    ctx.beginPath();
+    ctx.moveTo(line[0].x, line[0].y);
+
+    const fadeIn = Math.min(8, Math.floor(line.length * 0.15));
+    const fadeOut = Math.min(8, Math.floor(line.length * 0.15));
+
+    for (let i = 1; i < line.length; i++) {
+      // Compute fade alpha
+      let alpha = 0.025;
+      if (i < fadeIn) {
+        alpha *= i / fadeIn;
+      } else if (i > line.length - fadeOut) {
+        alpha *= (line.length - i) / fadeOut;
+      }
+
+      ctx.strokeStyle = `rgba(200, 220, 255, ${alpha})`;
+      ctx.lineWidth = 0.7;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.lineTo(line[i].x, line[i].y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(line[i].x, line[i].y);
     }
   }
 }
 
-// Main init
+// Main initialization
 export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 140 } = {}) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
@@ -159,9 +249,7 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
   const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
   if (!ctx) return;
 
-  // Reduced motion: draw once and stop.
   const reduced = prefersReducedMotion();
-
   let t0 = performance.now();
   let timer = null;
 
@@ -177,28 +265,31 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const { nx, ny } = gridForViewport(w, h);
-    const tMs = (tNow - t0);
+    const { nx, ny, seeds: seedCount } = gridForViewport(w, h);
+    const tMs = tNow - t0;
 
+    // Compute field
     const m = massesAtTime({ seed, tMs, w, h, count: masses });
     const phi = computePhiGrid({ nx, ny, w, h, masses: m, epsilonPx: epsilon });
-    const phiN = normalizePhi(phi);
-    const K = computeCurvature(phiN, nx, ny);
-    const K01 = normalizeK(K);
+    const grad = computeGradient(phi, nx, ny, w, h);
 
-    // TODO: replace with contour rendering (filled bands + isolines)
-    renderFallbackGrid(ctx, K01, nx, ny, w, h);
+    // Generate streamlines
+    const seedPoints = generateSeeds(seed, seedCount, w, h, m);
+    const streamlines = seedPoints.map(s =>
+      integrateStreamline(s, grad, nx, ny, w, h, 200, 2.5)
+    );
+
+    // Render
+    renderStreamlines(ctx, streamlines, w, h);
   }
 
   function start() {
     const { tickMs } = gridForViewport(window.innerWidth, window.innerHeight);
 
-    // Draw initial frame
     resizeAndDraw(performance.now());
 
     if (reduced) return;
 
-    // Tick loop (not RAF)
     timer = window.setInterval(() => {
       resizeAndDraw(performance.now());
     }, tickMs);
