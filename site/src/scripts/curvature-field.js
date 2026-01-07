@@ -280,6 +280,11 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
       integrateStreamline(s, grad, nx, ny, w, h, 1200, 1000, 50)
     );
 
+    // Debug
+    console.log(`Seeds: ${seedPoints.length}, Streamlines: ${streamlines.length}, avg length: ${streamlines.reduce((sum, s) => sum + s.length, 0) / streamlines.length}`);
+    if (seedPoints.length > 0) console.log('First seed:', seedPoints[0]);
+    if (streamlines.length > 0 && streamlines[0].length > 0) console.log('First streamline points:', streamlines[0][0], streamlines[0][Math.min(10, streamlines[0].length-1)]);
+
     // Render
     renderStreamlines(ctx, streamlines, w, h);
   }

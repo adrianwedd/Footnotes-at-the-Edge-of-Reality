@@ -27,12 +27,16 @@ const poemBody = lines.slice(1).join('\n');
         </Fragment>
       ))}
     </div>
+    <nav class="page-nav">
+      <a href={`${import.meta.env.BASE_URL}exegesis`}>Exegesis →</a>
+    </nav>
   </article>
 </BaseLayout>
 
 <style>
   article {
     padding: 2.5rem;
+    padding-bottom: 20rem;
   }
 
   h1 {
@@ -45,6 +49,7 @@ const poemBody = lines.slice(1).join('\n');
     font-size: 1rem;
     line-height: 1.65;
     white-space: pre-wrap;
+    margin-bottom: 3rem;
   }
 
   .poem-body br {
@@ -56,6 +61,20 @@ const poemBody = lines.slice(1).join('\n');
   /* Ensure stanza spacing is preserved */
   .poem-body {
     font-variant-ligatures: common-ligatures;
+  }
+
+  .page-nav {
+    text-align: center;
+    margin-top: 3rem;
+  }
+
+  .page-nav a {
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  .page-nav a:hover {
+    text-decoration: underline;
   }
 
   @media print {

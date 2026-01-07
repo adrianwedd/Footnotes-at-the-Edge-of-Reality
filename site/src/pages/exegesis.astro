@@ -22,12 +22,20 @@ const htmlContent = marked.parse(exegesisContent);
 >
   <article class="exegesis-container content-surface">
     <div class="exegesis-body" set:html={htmlContent} />
+    <nav class="page-nav">
+      <a href={`${import.meta.env.BASE_URL}poem`}>← Poem</a>
+    </nav>
   </article>
 </BaseLayout>
 
 <style>
   article {
     padding: 2.5rem;
+    padding-bottom: 20rem;
+  }
+
+  .exegesis-body {
+    margin-bottom: 3rem;
   }
 
   .exegesis-body :global(h1) {
@@ -77,6 +85,20 @@ const htmlContent = marked.parse(exegesisContent);
     background: rgba(233, 238, 246, 0.05);
     padding: 0.2em 0.4em;
     border-radius: 3px;
+  }
+
+  .page-nav {
+    text-align: center;
+    margin-top: 3rem;
+  }
+
+  .page-nav a {
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  .page-nav a:hover {
+    text-decoration: underline;
   }
 
   @media print {
