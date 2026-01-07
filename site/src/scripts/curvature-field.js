@@ -44,7 +44,7 @@ function massesAtTime({ seed, tMs, w, h, count = 3 }) {
     const minDim = Math.min(w, h);
     const x = (cx * w) + (radius * minDim) * Math.cos(angle);
     const y = (cy * h) + (radius * minDim) * ecc * Math.sin(angle);
-    const weight = 0.6 + rng() * 0.8;
+    const weight = 2.0 + rng() * 2.0; // Increased from 0.6-1.4 to 2.0-4.0 for stronger curvature
 
     masses.push({ x, y, weight });
   }
@@ -170,55 +170,77 @@ function integrateStreamline(seed, grad, nx, ny, w, h, maxSteps = 200, dt = 2.5,
   return points;
 }
 
-// Generate seed points (deterministic sparse distribution)
+// Generate seed points from viewport edges, flowing inward
 function generateSeeds(seed, count, w, h, masses) {
   const rng = mulberry32(seed + 9999);
   const seeds = [];
 
-  // Mix of random scatter and rings around masses
-  const randomCount = Math.floor(count * 0.6);
-  const ringCount = count - randomCount;
+  // All seeds start from edges, distributed around perimeter
+  for (let i = 0; i < count; i++) {
+    const edge = Math.floor(rng() * 4); // 0=top, 1=right, 2=bottom, 3=left
+    const t = rng(); // position along edge
 
-  // Random scatter
-  for (let i = 0; i < randomCount; i++) {
-    seeds.push({
-      x: rng() * w,
-      y: rng() * h
-    });
-  }
-
-  // Rings around masses
-  const ringsPerMass = Math.ceil(ringCount / masses.length);
-  for (const mass of masses) {
-    for (let i = 0; i < ringsPerMass; i++) {
-      const angle = rng() * Math.PI * 2;
-      const radius = (80 + rng() * 120); // px from mass
-      seeds.push({
-        x: mass.x + radius * Math.cos(angle),
-        y: mass.y + radius * Math.sin(angle)
-      });
+    let x, y;
+    switch (edge) {
+      case 0: // top edge
+        x = t * w;
+        y = -50; // Start slightly offscreen
+        break;
+      case 1: // right edge
+        x = w + 50;
+        y = t * h;
+        break;
+      case 2: // bottom edge
+        x = t * w;
+        y = h + 50;
+        break;
+      case 3: // left edge
+        x = -50;
+        y = t * h;
+        break;
     }
+
+    seeds.push({ x, y });
   }
 
-  return seeds.slice(0, count);
+  return seeds;
 }
 
-// Render streamlines with fade-in/fade-out
+// Render streamlines with fade toward center
 function renderStreamlines(ctx, streamlines, w, h) {
   ctx.clearRect(0, 0, w, h);
 
-  // Draw streamlines at subtle but noticeable opacity
+  const cx = w / 2;
+  const cy = h / 2;
+  const maxDist = Math.sqrt(cx * cx + cy * cy);
+  const fadeStart = maxDist * 0.3; // Start fading at 30% from center
+
+  // Draw each streamline as segments with varying opacity
   for (const line of streamlines) {
     if (line.length < 3) continue;
 
-    ctx.strokeStyle = 'rgba(138, 199, 217, 0.12)'; // Link color at 12% opacity
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(line[0].x, line[0].y);
-    for (let i = 1; i < line.length; i++) {
-      ctx.lineTo(line[i].x, line[i].y);
+    for (let i = 0; i < line.length - 1; i++) {
+      const p1 = line[i];
+      const p2 = line[i + 1];
+
+      // Calculate distance from center for midpoint
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2;
+      const dist = Math.sqrt((mx - cx) * (mx - cx) + (my - cy) * (my - cy));
+
+      // Fade out as approaching center
+      let opacity = 0.12;
+      if (dist < fadeStart) {
+        opacity = 0.12 * (dist / fadeStart);
+      }
+
+      ctx.strokeStyle = `rgba(138, 199, 217, ${opacity})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
     }
-    ctx.stroke();
   }
 }
 
