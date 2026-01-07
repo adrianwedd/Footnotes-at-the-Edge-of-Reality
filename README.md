@@ -2,33 +2,34 @@
 
 A dialogue between physics, language, and what we claim to know.
 
-This repository contains a poem and an accompanying exegesis about physics, language, and epistemology.
+**Read online:** [adrianwedd.github.io/Footnotes-at-the-Edge-of-Reality](https://adrianwedd.github.io/Footnotes-at-the-Edge-of-Reality/)
 
-**Read online:** [adrianwedd.github.io/Footnotes-at-the-Edge-of-Reality](https://adrianwedd.github.io/Footnotes-at-the-Edge-of-Reality/) *(after first deploy)*
+---
 
 ## About
 
+This repository holds a poem and its exegesis.
+
 The poem is written to be experienced without explanation.
-The exegesis exists for readers who want to trace the physical and philosophical ideas the poem leans on.
+The exegesis exists for those who want to trace the ideas behind it.
 
 The two texts are written in different grammars.
 
-- **Poem:** [poem.md](poem.md)
-- **Exegesis:** [exegesis.md](exegesis.md)
+---
 
 ## The Site
 
-The static site features:
-- Dark-first typography optimized for reading
-- A subtle animated background based on gravitational field equations
-- Full accessibility support (keyboard navigation, reduced motion preferences)
-- Print-friendly versions of both texts
+The site is built for reading.
 
-The background animation is deliberately imperceptible at first viewing, becoming obvious only after 2-3 minutes. This reflects the poem's themes of continuation and ongoing dialogue.
+Dark-first typography. Long-form comfort.
+A background that shows curvature through field lines—streamlines flowing from edges toward an invisible centre, fading before arrival.
 
-## Local Development
+The background exists to suggest continuation, not to impress.
+If you notice it immediately, it has failed.
 
-To run the site locally:
+---
+
+## Development
 
 ```bash
 cd site
@@ -36,27 +37,19 @@ npm install
 npm run dev
 ```
 
-The site will be available at `http://localhost:4321`.
+Built with [Astro](https://astro.build). Deployed to GitHub Pages.
 
-To build for production:
+---
 
-```bash
-npm run build
-```
+## Charter
 
-The built site will be in `site/dist/`.
+This is a text-first work.
+The background exists to suggest continuation, not to impress.
 
-## Technical Stack
+See [DESIGN_CHARTER.md](DESIGN_CHARTER.md) for the full intent.
 
-- **Framework:** [Astro](https://astro.build) v5
-- **Styling:** Custom CSS with dark-first design
-- **Background:** Custom canvas-based field renderer
-- **Deployment:** GitHub Pages via Actions
-
-## Design Philosophy
-
-This is a text-first work. The background exists to quietly support the idea of continuation, not to impress. See [DESIGN_CHARTER.md](DESIGN_CHARTER.md) for the full design philosophy.
+---
 
 ## License
 
-Content © 2026 Adrian Wedd. All rights reserved.
+© 2026 Adrian Wedd. All rights reserved.
