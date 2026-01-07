@@ -209,33 +209,24 @@ function generateSeeds(seed, count, w, h, masses) {
 function renderStreamlines(ctx, streamlines, w, h) {
   ctx.clearRect(0, 0, w, h);
 
-  // Debug: bright test square
-  ctx.fillStyle = 'rgba(255, 100, 100, 0.5)';
-  ctx.fillRect(20, 20, 50, 50);
-
+  // Draw streamlines FIRST
   for (const line of streamlines) {
     if (line.length < 3) continue;
 
-    const fadeIn = Math.min(8, Math.floor(line.length * 0.15));
-    const fadeOut = Math.min(8, Math.floor(line.length * 0.15));
-
-    for (let i = 0; i < line.length - 1; i++) {
-      // Compute fade alpha
-      let alpha = 0.12;
-      if (i < fadeIn) {
-        alpha *= i / fadeIn;
-      } else if (i > line.length - fadeOut) {
-        alpha *= (line.length - i) / fadeOut;
-      }
-
-      ctx.strokeStyle = `rgba(200, 220, 255, ${alpha})`;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(line[i].x, line[i].y);
-      ctx.lineTo(line[i + 1].x, line[i + 1].y);
-      ctx.stroke();
+    // Debug: draw entire line at HIGH opacity to see if rendering works
+    ctx.strokeStyle = 'rgba(100, 200, 255, 0.8)'; // BRIGHT BLUE 80%
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(line[0].x, line[0].y);
+    for (let i = 1; i < line.length; i++) {
+      ctx.lineTo(line[i].x, line[i].y);
     }
+    ctx.stroke();
   }
+
+  // Debug: test square AFTER streamlines (should be on top)
+  ctx.fillStyle = 'rgba(255, 100, 100, 0.5)';
+  ctx.fillRect(20, 20, 50, 50);
 }
 
 // Main initialization
