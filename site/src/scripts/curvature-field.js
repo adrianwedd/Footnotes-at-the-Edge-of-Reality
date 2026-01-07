@@ -33,8 +33,8 @@ function massesAtTime({ seed, tMs, w, h, count = 1 }) {
   const masses = [];
   for (let i = 0; i < count; i++) {
     const rng = mulberry32(seed + i * 1013);
-    // Single mass at center - streamlines flow inward from all directions
-    const cx = 0.5; // Center of viewport
+    // Single mass left of center - aligned with left-justified text
+    const cx = 0.38; // Left of center to align with text
     const cy = 0.5;
     const radius = 0.02 + rng() * 0.03; // Very small orbital radius
     const ecc = 0.85 + rng() * 0.20;
@@ -208,12 +208,13 @@ function generateSeeds(seed, count, w, h, masses) {
   return seeds;
 }
 
-// Render streamlines with fade toward center
-function renderStreamlines(ctx, streamlines, w, h) {
+// Render streamlines with fade toward mass
+function renderStreamlines(ctx, streamlines, w, h, mass) {
   ctx.clearRect(0, 0, w, h);
 
-  const cx = w / 2;
-  const cy = h / 2;
+  // Use mass position as fade center (left of geometric center)
+  const cx = mass.x;
+  const cy = mass.y;
   const targetRadius = 50; // 50px area at center they flow toward
   const fadeDistance = 100; // Fade over 100px before reaching target
   const fadeStart = targetRadius + fadeDistance; // 150px from center
@@ -226,12 +227,12 @@ function renderStreamlines(ctx, streamlines, w, h) {
       const p1 = line[i];
       const p2 = line[i + 1];
 
-      // Calculate distance from center for midpoint
+      // Calculate distance from mass for midpoint
       const mx = (p1.x + p2.x) / 2;
       const my = (p1.y + p2.y) / 2;
       const dist = Math.sqrt((mx - cx) * (mx - cx) + (my - cy) * (my - cy));
 
-      // Fade out as approaching center target area
+      // Fade out as approaching mass target area
       let opacity = 0.12;
       if (dist < fadeStart) {
         // Linear fade from full opacity at 150px to 0 at 50px
@@ -287,13 +288,8 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
       integrateStreamline(s, grad, nx, ny, w, h, 1200, 1000, 50)
     );
 
-    // Debug
-    console.log(`Seeds: ${seedPoints.length}, Streamlines: ${streamlines.length}, avg length: ${streamlines.reduce((sum, s) => sum + s.length, 0) / streamlines.length}`);
-    if (seedPoints.length > 0) console.log('First seed:', seedPoints[0]);
-    if (streamlines.length > 0 && streamlines[0].length > 0) console.log('First streamline points:', streamlines[0][0], streamlines[0][Math.min(10, streamlines[0].length-1)]);
-
-    // Render
-    renderStreamlines(ctx, streamlines, w, h);
+    // Render with fade centered on mass position
+    renderStreamlines(ctx, streamlines, w, h, m[0]);
   }
 
   function start() {
