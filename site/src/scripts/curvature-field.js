@@ -209,24 +209,12 @@ function generateSeeds(seed, count, w, h, masses) {
 function renderStreamlines(ctx, streamlines, w, h) {
   ctx.clearRect(0, 0, w, h);
 
-  // Debug: log coordinate samples
-  if (streamlines.length > 0 && streamlines[0].length > 0) {
-    const firstLine = streamlines[0];
-    console.log('First line sample points:',
-      firstLine[0],
-      firstLine[Math.floor(firstLine.length/2)],
-      firstLine[firstLine.length-1]
-    );
-    console.log('Viewport:', w, 'x', h);
-  }
-
-  // Draw streamlines FIRST
+  // Draw streamlines at barely-visible opacity
   for (const line of streamlines) {
     if (line.length < 3) continue;
 
-    // Debug: draw entire line at HIGH opacity to see if rendering works
-    ctx.strokeStyle = 'rgba(100, 200, 255, 0.8)'; // BRIGHT BLUE 80%
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(138, 199, 217, 0.04)'; // Link color at 4% opacity
+    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(line[0].x, line[0].y);
     for (let i = 1; i < line.length; i++) {
@@ -234,10 +222,6 @@ function renderStreamlines(ctx, streamlines, w, h) {
     }
     ctx.stroke();
   }
-
-  // Debug: test square AFTER streamlines (should be on top)
-  ctx.fillStyle = 'rgba(255, 100, 100, 0.5)';
-  ctx.fillRect(20, 20, 50, 50);
 }
 
 // Main initialization
@@ -277,9 +261,6 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
     const streamlines = seedPoints.map(s =>
       integrateStreamline(s, grad, nx, ny, w, h, 400, 1000, 50)
     );
-
-    // Debug
-    console.log(`Generated ${streamlines.length} streamlines, avg length: ${streamlines.reduce((sum, s) => sum + s.length, 0) / streamlines.length}`);
 
     // Render
     renderStreamlines(ctx, streamlines, w, h);
