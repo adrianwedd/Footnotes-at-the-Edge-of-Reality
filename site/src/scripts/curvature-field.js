@@ -209,6 +209,17 @@ function generateSeeds(seed, count, w, h, masses) {
 function renderStreamlines(ctx, streamlines, w, h) {
   ctx.clearRect(0, 0, w, h);
 
+  // Debug: log coordinate samples
+  if (streamlines.length > 0 && streamlines[0].length > 0) {
+    const firstLine = streamlines[0];
+    console.log('First line sample points:',
+      firstLine[0],
+      firstLine[Math.floor(firstLine.length/2)],
+      firstLine[firstLine.length-1]
+    );
+    console.log('Viewport:', w, 'x', h);
+  }
+
   // Draw streamlines FIRST
   for (const line of streamlines) {
     if (line.length < 3) continue;
