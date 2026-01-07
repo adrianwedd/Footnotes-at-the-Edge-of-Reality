@@ -84,8 +84,9 @@ function computeGradient(phi, nx, ny, w, h) {
   for (let j = 1; j < ny - 1; j++) {
     for (let i = 1; i < nx - 1; i++) {
       const idx = j * nx + i;
-      const gx = (phi[idx + 1] - phi[idx - 1]) / (2 * dx);
-      const gy = (phi[idx + nx] - phi[idx - nx]) / (2 * dy);
+      // Negate gradient so streamlines flow downhill (toward masses) not uphill
+      const gx = -(phi[idx + 1] - phi[idx - 1]) / (2 * dx);
+      const gy = -(phi[idx + nx] - phi[idx - nx]) / (2 * dy);
       grad[idx] = { x: gx, y: gy };
     }
   }
