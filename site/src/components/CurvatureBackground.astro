@@ -1,0 +1,27 @@
+---
+// CurvatureBackground.astro
+// Minimal, text-first background canvas. No UI. No interaction.
+// Respects prefers-reduced-motion via the script.
+// NOTE: This component assumes the script is safe to run once per page.
+
+const seed = 42; // TODO: set per-build or per-session if desired
+---
+
+<canvas id="curvature-bg" aria-hidden="true"></canvas>
+
+<script type="module" define:vars={{ seed }}>
+  import { initCurvatureField } from "../scripts/curvature-field.js";
+  initCurvatureField({ canvasId: "curvature-bg", seed });
+</script>
+
+<style>
+  /* Keep styling tiny; main CSS lives in src/styles/curvature.css */
+  #curvature-bg {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+  }
+</style>

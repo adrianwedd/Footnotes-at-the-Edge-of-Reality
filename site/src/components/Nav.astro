@@ -1,0 +1,59 @@
+---
+// Minimal top-right navigation
+const base = import.meta.env.BASE_URL;
+---
+
+<nav>
+  <a href={`${base}poem`}>Poem</a>
+  <span aria-hidden="true">|</span>
+  <a href={`${base}exegesis`}>Exegesis</a>
+  <span aria-hidden="true">|</span>
+  <a href="https://github.com/adrianwedd/Footnotes-at-the-Edge-of-Reality" target="_blank" rel="noopener noreferrer">GitHub</a>
+</nav>
+
+<style>
+  nav {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-size: 0.95rem;
+  }
+
+  nav a {
+    color: var(--fg);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  nav a:hover {
+    color: var(--link);
+  }
+
+  nav a:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  nav span {
+    color: var(--muted);
+    user-select: none;
+  }
+
+  @media (max-width: 600px) {
+    nav {
+      padding: 1rem;
+      font-size: 0.875rem;
+      gap: 0.75rem;
+    }
+  }
+
+  @media print {
+    nav {
+      display: none;
+    }
+  }
+</style>

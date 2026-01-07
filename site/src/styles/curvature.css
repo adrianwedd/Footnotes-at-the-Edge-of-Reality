@@ -1,0 +1,31 @@
+/* curvature.css
+   Minimal styling for the background + content overlay expectations.
+   Tune tokens in global.css; keep this file small and boring.
+*/
+
+:root {
+  --bg: #070a0f;
+  --fg: #e9eef6;
+  --muted: #a8b3c2;
+  --link: #8ac7d9;
+  --rule: rgba(233, 238, 246, 0.10);
+  --selection: rgba(138, 199, 217, 0.25);
+  --content-overlay: rgba(7, 10, 15, 0.90);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+::selection {
+  background: var(--selection);
+}
+
+main .content-surface {
+  background: var(--content-overlay);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 1.25rem;
+  backdrop-filter: blur(2px);
+}

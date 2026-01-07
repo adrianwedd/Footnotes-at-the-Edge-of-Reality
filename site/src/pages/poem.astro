@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import fs from 'fs';
+import path from 'path';
+
+// Read poem content at build time
+const poemPath = path.join(process.cwd(), 'src/content/poem.md');
+const poemContent = fs.readFileSync(poemPath, 'utf-8');
+
+// Extract title from first line (# Title)
+const lines = poemContent.split('\n');
+const title = lines[0].replace(/^#\s+/, '');
+const poemBody = lines.slice(1).join('\n');
+---
+
+<BaseLayout
+  title={title}
+  description="A poem about physics, language, and epistemology."
+>
+  <article class="poem-container content-surface">
+    <h1>{title}</h1>
+    <div class="poem-body">
+      {poemBody.split('\n').map((line, i) => (
+        <Fragment key={i}>
+          {line || '\u00A0'}
+          <br />
+        </Fragment>
+      ))}
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  article {
+    padding: 2.5rem;
+  }
+
+  h1 {
+    margin-bottom: 2rem;
+    font-size: 1.75rem;
+    font-weight: 400;
+  }
+
+  .poem-body {
+    font-size: 1rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+
+  .poem-body br {
+    content: "";
+    display: block;
+    margin: 0;
+  }
+
+  /* Ensure stanza spacing is preserved */
+  .poem-body {
+    font-variant-ligatures: common-ligatures;
+  }
+
+  @media print {
+    article {
+      background: white !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+  }
+</style>

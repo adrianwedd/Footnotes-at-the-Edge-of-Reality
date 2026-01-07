@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import fs from 'fs';
+import path from 'path';
+import { marked } from 'marked';
+
+// Read exegesis content at build time
+const exegesisPath = path.join(process.cwd(), 'src/content/exegesis.md');
+const exegesisContent = fs.readFileSync(exegesisPath, 'utf-8');
+
+// Extract title from first line
+const lines = exegesisContent.split('\n');
+const title = lines[0].replace(/^#\s+/, '');
+
+// Render markdown to HTML
+const htmlContent = marked.parse(exegesisContent);
+---
+
+<BaseLayout
+  title={title}
+  description="An exegesis accompanying Footnotes at the Edge of Reality."
+>
+  <article class="exegesis-container content-surface">
+    <div class="exegesis-body" set:html={htmlContent} />
+  </article>
+</BaseLayout>
+
+<style>
+  article {
+    padding: 2.5rem;
+  }
+
+  .exegesis-body :global(h1) {
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+  }
+
+  .exegesis-body :global(h2) {
+    font-size: 1.4rem;
+    font-weight: 400;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.5rem;
+  }
+
+  .exegesis-body :global(h3) {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--muted);
+  }
+
+  .exegesis-body :global(p) {
+    margin-bottom: 1rem;
+  }
+
+  .exegesis-body :global(blockquote) {
+    margin: 1.5rem 0;
+    padding-left: 1.5rem;
+    border-left: 3px solid var(--link);
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  .exegesis-body :global(hr) {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 2.5rem 0;
+  }
+
+  .exegesis-body :global(a) {
+    color: var(--link);
+  }
+
+  .exegesis-body :global(code) {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    background: rgba(233, 238, 246, 0.05);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  @media print {
+    article {
+      background: white !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+  }
+</style>
