@@ -221,7 +221,7 @@ function renderStreamlines(ctx, streamlines, w, h) {
 
     for (let i = 1; i < line.length; i++) {
       // Compute fade alpha
-      let alpha = 0.025;
+      let alpha = 0.10;  // Increased from 0.025 for visibility
       if (i < fadeIn) {
         alpha *= i / fadeIn;
       } else if (i > line.length - fadeOut) {
@@ -229,7 +229,7 @@ function renderStreamlines(ctx, streamlines, w, h) {
       }
 
       ctx.strokeStyle = `rgba(200, 220, 255, ${alpha})`;
-      ctx.lineWidth = 0.7;
+      ctx.lineWidth = 1.0;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
