@@ -213,8 +213,9 @@ function renderStreamlines(ctx, streamlines, w, h) {
 
   const cx = w / 2;
   const cy = h / 2;
-  const maxDist = Math.sqrt(cx * cx + cy * cy);
-  const fadeStart = maxDist * 0.3; // Start fading at 30% from center
+  const targetRadius = 50; // 50px area at center they flow toward
+  const fadeDistance = 100; // Fade over 100px before reaching target
+  const fadeStart = targetRadius + fadeDistance; // 150px from center
 
   // Draw each streamline as segments with varying opacity
   for (const line of streamlines) {
@@ -229,18 +230,22 @@ function renderStreamlines(ctx, streamlines, w, h) {
       const my = (p1.y + p2.y) / 2;
       const dist = Math.sqrt((mx - cx) * (mx - cx) + (my - cy) * (my - cy));
 
-      // Fade out as approaching center
+      // Fade out as approaching center target area
       let opacity = 0.12;
       if (dist < fadeStart) {
-        opacity = 0.12 * (dist / fadeStart);
+        // Linear fade from full opacity at 150px to 0 at 50px
+        opacity = 0.12 * ((dist - targetRadius) / fadeDistance);
+        opacity = Math.max(0, opacity); // Clamp to 0
       }
 
-      ctx.strokeStyle = `rgba(138, 199, 217, ${opacity})`;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.stroke();
+      if (opacity > 0) {
+        ctx.strokeStyle = `rgba(138, 199, 217, ${opacity})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
     }
   }
 }
