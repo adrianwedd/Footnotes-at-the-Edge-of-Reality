@@ -1,6 +1,7 @@
 // curvature-field.js
-// Renders gravitational field as static streamlines showing spacetime curvature
-// Field is frozen in time, revealing geometry around invisible masses
+// Renders gravitational field as evolving streamlines showing spacetime curvature
+// Matter tells Space how to curve. Space tells Matter how to move.
+// Masses orbit slowly (10-20min periods), field evolves, geometry shifts
 
 // Seeded RNG (Mulberry32)
 function mulberry32(seed) {
@@ -18,12 +19,12 @@ function clamp01(x) {
   return Math.max(0, Math.min(1, x));
 }
 
-// Adaptive grid size by viewport
+// Adaptive grid size and tick rate by viewport
 function gridForViewport(w, h) {
   const minDim = Math.min(w, h);
-  if (minDim < 520) return { nx: 120, ny: 68, seeds: 8 };
-  if (minDim < 900) return { nx: 180, ny: 101, seeds: 12 };
-  return { nx: 240, ny: 135, seeds: 15 };
+  if (minDim < 520) return { nx: 120, ny: 68, tickMs: 5000, seeds: 8 };
+  if (minDim < 900) return { nx: 180, ny: 101, tickMs: 4000, seeds: 12 };
+  return { nx: 240, ny: 135, tickMs: 3000, seeds: 15 };
 }
 
 // Deterministic mass motion (slow orbits)
@@ -228,7 +229,8 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
   const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
   if (!ctx) return;
 
-  const t0 = performance.now();
+  let t0 = performance.now();
+  let timer = null;
 
   function resizeAndDraw(tNow) {
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
@@ -261,11 +263,28 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
   }
 
   function start() {
-    // Draw once - field is static, showing spacetime curvature
+    const { tickMs } = gridForViewport(window.innerWidth, window.innerHeight);
+
     resizeAndDraw(performance.now());
+
+    // Evolve field on geological timescale (3-5 second ticks)
+    timer = window.setInterval(() => {
+      resizeAndDraw(performance.now());
+    }, tickMs);
+  }
+
+  function stop() {
+    if (timer) window.clearInterval(timer);
+    timer = null;
+  }
+
+  function onVisibility() {
+    if (document.hidden) stop();
+    else start();
   }
 
   window.addEventListener("resize", () => resizeAndDraw(performance.now()), { passive: true });
+  document.addEventListener("visibilitychange", onVisibility, { passive: true });
 
   start();
 }
