@@ -272,10 +272,10 @@ export function initCurvatureField({ canvasId, seed = 42, masses = 3, epsilon = 
     const phi = computePhiGrid({ nx, ny, w, h, masses: m, epsilonPx: epsilon });
     const grad = computeGradient(phi, nx, ny, w, h);
 
-    // Generate streamlines (scale gradient by 20000x to produce visible motion)
+    // Generate streamlines (scale gradient by 50x to produce visible motion)
     const seedPoints = generateSeeds(seed, seedCount, w, h, m);
     const streamlines = seedPoints.map(s =>
-      integrateStreamline(s, grad, nx, ny, w, h, 400, 1000, 20000)
+      integrateStreamline(s, grad, nx, ny, w, h, 400, 1000, 50)
     );
 
     // Debug
