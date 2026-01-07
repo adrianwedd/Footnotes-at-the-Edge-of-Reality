@@ -30,6 +30,9 @@ The line does not imply intention, agency, or communication. "Tells" is metaphor
 ### Why this phrasing
 Any asymmetric phrasing ("Space controls matter," "Matter distorts space") would misrepresent the structure of the theory and undermine the poem's later breakdowns, which depend on this initial balance.
 
+### Attribution
+This phrasing comes from John Archibald Wheeler, who summarized Einstein's General Relativity as: "Matter tells space how to curve, and space tells matter how to move." The poem inherits his language and uses it as a structural foundation.
+
 ---
 
 ## Polite Physics
